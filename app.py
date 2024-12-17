@@ -1,15 +1,21 @@
-import plotly.express as px
+from pypdf import PdfReader
 
-mark_breakdown = {
-    "Homework": "10%",
-    "Midterm 1": "23%",
-    "Midterm 2": "22%",
-    "Final Exam": "45%",
-}
+# we would want to clone the file, but since we are just reading the file & this is just the testing phase it doesn't matter
+reader = PdfReader("Sample Outline.pdf")
 
-percents = list(map(lambda weight : int(weight.replace("%", "")), mark_breakdown.values()))
-tasks = list(mark_breakdown.keys())
-px.pie(values=percents, names=tasks).show()
+if len(reader.pages) > 15:
+    raise Exception("Please provide a PDF that has less than or equal to 15 pages.")
 
-#for task, weight in mark_breakdown.items():
-#    print(task + "\t" + weight)
+# try using fuzzywuzzy instead?
+for pageNumber, page in enumerate(reader.pages):
+    page_text = page.extract_text()
+    compressed_text = page_text.lower().replace(" ", "").replace("\n", "").replace("\r", "")
+    found_course_eval = compressed_text.find("courseevaluation")
+    
+    if found_course_eval == -1:
+        continue
+
+    print(f"Found course evaluation on: {pageNumber + 1}")
+    relevantText = page_text[found_course_eval:]
+    print(relevantText)
+    break
